@@ -110,8 +110,7 @@ S3BUCKET="${6}"
 S3STORAGETYPE="STANDARD" #REDUCED_REDUNDANCY or STANDARD etc.
 AWSREGION="s3-us-west-2"
 
-function putS3
-{
+putS3(){
 
   file_path=$1
   aws_path=/
@@ -132,15 +131,14 @@ function putS3
        "https://$bucket.${AWSREGION}.amazonaws.com$aws_path${file_path##/*/}"
 }
 
-#root check
 if [[ $EUID -ne 0 ]]; then
 	printlog "This script must be run as root" ERROR
   printlog "################## End $APPLICATION" INFO
   exit 1
 fi
 
-UserInputIssue=`osascript -e 'display dialog "Please give a description of the issue you are experiencing with Jamf Protect, the more information the better." buttons {"OK"} default button "OK" default answer "" with icon POSIX file ("'$icon'" as string)'`
-UserInputDoing=`osascript -e 'display dialog "What were you doing while the issue occurred? Examples: Running a report in Excel, compiling a project..." buttons {"OK"} default button "OK" default answer "" with icon POSIX file ("'$icon'" as string)'`
+UserInputIssue=`osascript -e 'display dialog "Please give a description of the issue you are experiencing with Jamf Protect, the more information the better." buttons {"OK"} default button "OK" default answer "\n\n\n\n\n\n\n\n\n\n" with icon POSIX file ("'$icon'" as string)'`
+UserInputDoing=`osascript -e 'display dialog "What were you doing while the issue occurred? Examples: Running a report in Excel, compiling a project..." buttons {"OK"} default button "OK" default answer "\n\n\n\n\n\n\n\n\n\n" with icon POSIX file ("'$icon'" as string)'`
 
 ## Create a temporary storage folder
 /bin/mkdir $LOGPATH
