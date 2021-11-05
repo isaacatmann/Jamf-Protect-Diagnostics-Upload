@@ -2,34 +2,37 @@
 ###############################################################################
 # Jamf Protect Diagnostics Upload
 # Created by: Mann Consulting (support@mann.com)
-# Summary:  Captures logging data for Jamf Protect and upploads to S3 for easy submittal to Jamf.
-#           The employee will be prompted to answer questions generally asked by Jamf support,
-#           This will save considerable back/forth questions when reporting issues.
+# Summary:
+#     Captures logging data for Jamf Protect and upploads to S3 for easy submittal to Jamf.
+#     The employee will be prompted to answer questions generally asked by Jamf support,
+#     This will save considerable back/forth questions when reporting issues.
 #
-#           SECURITY CONCERN: IAM Key and Secret will be shown in the process list on the computer,
-#           take appropriate security precautions to make sure that the IAM user is restricted.
-#           You should create a dedicated S3 bucket and make the IAM WRITE ONLY just for that bucket.
+#     SECURITY CONCERN: IAM Key and Secret will be shown in the process list on the computer,
+#     take appropriate security precautions to make sure that the IAM user is restricted.
+#     You should create a dedicated S3 bucket and make the IAM WRITE ONLY just for that bucket.
 #
 #
 # Arguments:
-#       1-3 are reserved by Jamf Pro
-#       4: S3 Write only IAM Key
-#       5: S3 Write only IAM Secret
-#       6: S3 Bucket Name
-#       7: Datadog API key, Logging level (i.e. 4848200000000000000a68c7bb,INFO)
-#       8:
-#       9:
-#       10:
-#       11: Variable Overrides, seperated by semicolin (i.e. NOTIFY=silent;FORCEFULLUPDATE=YES)
+#     1-3 are reserved by Jamf Pro
+#     4: S3 Write only IAM Key
+#     5: S3 Write only IAM Secret
+#     6: S3 Bucket Name
+#     7: Datadog API key, Logging level (i.e. 4848200000000000000a68c7bb,INFO)
+#     8:
+#     9:
+#     10:
+#     11: Variable Overrides, seperated by semicolin (i.e. NOTIFY=silent;FORCEFULLUPDATE=YES)
 # Exit Codes:
-#       0: Sucessful!
-#       1: Generic Error, undefined
+#     0: Sucessful!
+#     1: Generic Error, undefined
 #
-# Useage:   Run as part of a policy as needed to gather logs.
+# Useage:
+#     Run as part of a policy as needed to gather logs.
 #
-# Do Note:  This script is part of Mann Consulting's Jamf Pro Maintenance subscription.
-#           If you'd like updates or support sign up at https://mann.com/jamf or
-#           email support@mann.com for more details
+# Do Note:
+#     This script is part of Mann Consulting's Jamf Pro Maintenance subscription.
+#     If you'd like updates or support sign up at https://mann.com/jamf or
+#     email support@mann.com for more details
 ###############################################################################
 VERSIONDATE='20211103'
 APPLICATION="JamfProtectDiagnostics"
@@ -137,7 +140,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 UserInputIssue=`osascript -e 'display dialog "Please give a description of the issue you are experiencing with Jamf Protect, the more information the better." buttons {"OK"} default button "OK" default answer "" with icon POSIX file ("'$icon'" as string)'`
-UserInputDoing=`osascript -e 'display dialog "What were you doing while the issue occured? Examples: Running a report in Excel, compiling a project..." buttons {"OK"} default button "OK" default answer "" with icon POSIX file ("'$icon'" as string)'`
+UserInputDoing=`osascript -e 'display dialog "What were you doing while the issue occurred? Examples: Running a report in Excel, compiling a project..." buttons {"OK"} default button "OK" default answer "" with icon POSIX file ("'$icon'" as string)'`
 
 ## Create a temporary storage folder
 /bin/mkdir $LOGPATH
@@ -176,14 +179,20 @@ printlog "Capturing process information..." INFO
 printlog "Capturing power metrics (10 seconds)..." INFO
 /usr/bin/powermetrics -a 0 -i 1000 -n 10 -s tasks --show-process-energy > $LOGPATH/power.txt
 
+printlog "Capturing System Keychain"
+security dump-keychain /Library/Keychains/System.keychain &> $LOGPATH/System.keychain.dump.txt
+
 logfilezip=$LOGROOT/JamfProtectDiagnostics-${JSSHOST}-v${VERSION}-${currentUser}-$(date +"%m-%d-%Y-%H-%M").zip
 printlog "Zipping up results as $logfilezip" INFO
 /usr/bin/zip -j -r ${logfilezip} $LOGPATH/*
+
 
 printlog "Uploading file to S3" INFO
 putS3 $logfilezip
 
 printlog "Deleting files" INFO
 rm -Rf $LOGROOT/
+
+osascript -e 'display dialog "Your report has been submitted, we will review it for issues." buttons {"OK"} default button "OK"  with icon POSIX file ("'$icon'" as string)' &
 
 printlog "################## End $APPLICATION" INFO
