@@ -159,6 +159,8 @@ printlog "Gathering information about the Jamf Protect agent configuration" INFO
 printlog "Gathering historical Jamf Protect daemon activity..." INFO
 /usr/bin/log show --debug --predicate "subsystem == 'com.jamf.protect.daemon' && category != 'Cache'" > $LOGPATH/daemonActivity.txt
 
+/usr/bin/log show --debug --predicate "processImagePath CONTAINS 'JamfProtect'" --info > $LOGPATH/JamfProtect.processImagePath.LogActivity.txt
+
 printlog "Enumerating open files..." INFO
 /usr/sbin/lsof -c $TARGET > $LOGPATH/lsof.txt
 
